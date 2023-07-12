@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- Bootstrap の CSS -->
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Bootstrap の JS -->
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+  <style>
+    .file-upload-wrapper {
+      margin: 50px;
+      text-align: center;
+    }
+    .btn-upload {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="file-upload-wrapper">
+    <h1>CSVファイルアップロード</h1>
+    <form action="/convert" method="post" enctype="multipart/form-data">
+      <div class="form-group">
+        <input type="file" class="form-control-file" id="mockFile" name="mockFile" accept=".csv">
+      </div>
+      <button type="submit" class="btn btn-primary btn-upload">アップロード</button>
+    </form>
+  </div>
+</body>
+</html>
