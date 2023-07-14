@@ -12,9 +12,9 @@ import (
 type (
 	Decoder interface {
 		// DecodeStyle returns single style
-		DecodeStyles(data []byte) (*Styles, error)
+		DecodeStyles(data []byte) (Styles, error)
 		// DecodeCard returns single card
-		DecodeCards(data []byte, styles *Styles) (*Cards, error)
+		DecodeCards(data []byte, styles Styles) (*Cards, error)
 	}
 	// csvConverter is a struct for converting csv file
 	CsvDecoder struct{}
@@ -42,7 +42,7 @@ var (
 )
 
 // DecodeStyle returns single style
-func (c CsvDecoder) DecodeStyles(data []byte) (*Styles, error) {
+func (c CsvDecoder) DecodeStyles(data []byte) (Styles, error) {
 	s := make(Styles)
 	if err := gocsv.UnmarshalBytesToCallback(data, func(sc StyleCSV) error {
 		p := image.Point{sc.X, sc.Y}
@@ -52,7 +52,7 @@ func (c CsvDecoder) DecodeStyles(data []byte) (*Styles, error) {
 			uint8(sc.ColorB),
 			uint8(sc.ColorA),
 		}
-		if _, e := s[sc.Name]; e {
+		if _, ok := s[sc.Name]; ok {
 			return errors.New("style name is duplicated")
 		}
 		s[sc.Name] = &Style{
@@ -65,11 +65,11 @@ func (c CsvDecoder) DecodeStyles(data []byte) (*Styles, error) {
 	}); err != nil {
 		return nil, err
 	}
-	return &s, nil
+	return s, nil
 }
 
 // DecodeCard returns single card
-func (c CsvDecoder) DecodeCards(data []byte, styles *Styles) (*Cards, error) {
+func (c CsvDecoder) DecodeCards(data []byte, styles Styles) (Cards, error) {
 	cards := make(Cards, 0)
 	if err := gocsv.UnmarshalBytesToCallback(data, func(cc CardCSV) error {
 		sp, err := styles.Pointer(cc.Style)
@@ -80,5 +80,5 @@ func (c CsvDecoder) DecodeCards(data []byte, styles *Styles) (*Cards, error) {
 	}); err != nil {
 		return nil, err
 	}
-	return &cards, nil
+	return cards, nil
 }
