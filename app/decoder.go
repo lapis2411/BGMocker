@@ -21,10 +21,11 @@ type (
 )
 
 var (
+	// CSVDecoder is a decoder for csv file
 	CSVDecoder Decoder = CsvDecoder{}
 )
 
-// DecodeStyle returns single style
+// DecodeStyle returns single style by csv format byte array
 func (c CsvDecoder) DecodeStyles(data []byte) (Styles, error) {
 	s := make(Styles)
 	type styleCSV struct {
@@ -61,7 +62,7 @@ func (c CsvDecoder) DecodeStyles(data []byte) (Styles, error) {
 	return s, nil
 }
 
-// DecodeCard returns single card
+// DecodeCard returns information for generating cards by csv format byte array
 func (c CsvDecoder) DecodeCards(data []byte, styles Styles) (Cards, error) {
 	cards := make(Cards, 0)
 	type cardCSV struct {

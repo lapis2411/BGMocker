@@ -23,7 +23,9 @@ type (
 		style *Style // have pointer to style to save memory
 	}
 
+	// Styles is a map for text style definition by style name
 	Styles map[string]*Style
+
 	// Style is a struct for text style definition
 	// can define position, fontsize and color
 	Style struct {
@@ -34,6 +36,7 @@ type (
 	}
 )
 
+// Pointer returns pointer to style by style name
 func (s Styles) Pointer(name string) (*Style, error) {
 	if _, e := s[name]; !e {
 		return nil, errors.New("style is undefined")
@@ -41,6 +44,7 @@ func (s Styles) Pointer(name string) (*Style, error) {
 	return s[name], nil
 }
 
+// String is stringer for Styles
 func (s Styles) String() string {
 	str := ""
 	for k, v := range s {
@@ -49,6 +53,7 @@ func (s Styles) String() string {
 	return str
 }
 
+// String is stringer for Style
 func (s Style) String() string {
 	ss := "name: " + s.name
 	ss += ", position: " + s.position.String()
@@ -57,6 +62,8 @@ func (s Style) String() string {
 	return ss
 }
 
+// Add adds styled text to the card of cards
+// name is card name, text is description or some value, style is style for text pointer
 func (c *Cards) Add(name string, text string, style *Style) error {
 	if style == nil {
 		return errors.New("style is undefined")
@@ -67,6 +74,8 @@ func (c *Cards) Add(name string, text string, style *Style) error {
 	return (*c)[name].Add(text, style)
 }
 
+// Add adds styled text to single card
+// text is description or some value, style is style for text pointer
 func (c *Card) Add(text string, style *Style) error {
 	if _, ok := (*c).styles[style.name]; ok {
 		return errors.New("style is duplicated")
@@ -85,6 +94,7 @@ func (c *Card) Add(text string, style *Style) error {
 	return nil
 }
 
+// String is stringer for Cards
 func (c Cards) String() string {
 	st := ""
 	for k, v := range c {
@@ -101,6 +111,7 @@ func (c Cards) String() string {
 	return st
 }
 
+// String is stringer for StyledText
 func (st StyledText) String() string {
 	return "text: " + st.text + fmt.Sprintf(", style: %p", st.style)
 }
