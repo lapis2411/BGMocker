@@ -14,27 +14,10 @@ type (
 		// DecodeStyle returns single style
 		DecodeStyles(data []byte) (Styles, error)
 		// DecodeCard returns single card
-		DecodeCards(data []byte, styles Styles) (*Cards, error)
+		DecodeCards(data []byte, styles Styles) (Cards, error)
 	}
 	// csvConverter is a struct for converting csv file
 	CsvDecoder struct{}
-
-	StyleCSV struct {
-		Name     string  `csv:"name"`
-		FontSize float64 `csv:"font_size"`
-		X        int     `csv:"x"`
-		Y        int     `csv:"y"`
-		ColorR   int     `csv:"color_r"`
-		ColorG   int     `csv:"color_g"`
-		ColorB   int     `csv:"color_b"`
-		ColorA   int     `csv:"color_a"`
-	}
-
-	CardCSV struct {
-		Name  string `csv:"name"`
-		Style string `csv:"style"`
-		Text  string `csv:"text"`
-	}
 )
 
 var (
@@ -44,7 +27,17 @@ var (
 // DecodeStyle returns single style
 func (c CsvDecoder) DecodeStyles(data []byte) (Styles, error) {
 	s := make(Styles)
-	if err := gocsv.UnmarshalBytesToCallback(data, func(sc StyleCSV) error {
+	type styleCSV struct {
+		Name     string  `csv:"name"`
+		FontSize float64 `csv:"font_size"`
+		X        int     `csv:"x"`
+		Y        int     `csv:"y"`
+		ColorR   int     `csv:"color_r"`
+		ColorG   int     `csv:"color_g"`
+		ColorB   int     `csv:"color_b"`
+		ColorA   int     `csv:"color_a"`
+	}
+	if err := gocsv.UnmarshalBytesToCallback(data, func(sc styleCSV) error {
 		p := image.Point{sc.X, sc.Y}
 		rgba := color.RGBA{
 			uint8(sc.ColorR),
@@ -71,7 +64,12 @@ func (c CsvDecoder) DecodeStyles(data []byte) (Styles, error) {
 // DecodeCard returns single card
 func (c CsvDecoder) DecodeCards(data []byte, styles Styles) (Cards, error) {
 	cards := make(Cards, 0)
-	if err := gocsv.UnmarshalBytesToCallback(data, func(cc CardCSV) error {
+	type cardCSV struct {
+		Name  string `csv:"name"`
+		Style string `csv:"style"`
+		Text  string `csv:"text"`
+	}
+	if err := gocsv.UnmarshalBytesToCallback(data, func(cc cardCSV) error {
 		sp, err := styles.Pointer(cc.Style)
 		if err != nil {
 			return errors.New("style is undefined")

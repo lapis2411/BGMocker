@@ -61,17 +61,23 @@ func (c *Cards) Add(name string, text string, style *Style) error {
 	if style == nil {
 		return errors.New("style is undefined")
 	}
-	if _, e := (*c)[name]; !e {
+	if _, ok := (*c)[name]; !ok {
 		(*c)[name] = &Card{}
 	}
 	return (*c)[name].Add(text, style)
 }
 
 func (c *Card) Add(text string, style *Style) error {
-	if _, e := (*c).styles[style.name]; e {
+	if _, ok := (*c).styles[style.name]; ok {
 		return errors.New("style is duplicated")
 	}
+	if (*c).styles == nil {
+		(*c).styles = make(map[string]struct{})
+	}
 	(*c).styles[style.name] = struct{}{}
+	if (*c).styledTexts == nil {
+		(*c).styledTexts = make([]StyledText, 0)
+	}
 	(*c).styledTexts = append((*c).styledTexts, StyledText{
 		text:  text,
 		style: style,
@@ -83,6 +89,11 @@ func (c Cards) String() string {
 	st := ""
 	for k, v := range c {
 		st += "key: " + k + "\n"
+		st += "used_styles: "
+		for name := range v.styles {
+			st += name + ", "
+		}
+		st += "\n"
 		for _, stxt := range v.styledTexts {
 			st += fmt.Sprint(stxt, "\n")
 		}
@@ -91,5 +102,5 @@ func (c Cards) String() string {
 }
 
 func (st StyledText) String() string {
-	return "text: " + st.text + ", style: " + st.style.name
+	return "text: " + st.text + fmt.Sprintf(", style: %p", st.style)
 }

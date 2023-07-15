@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"image"
 	"image/color"
 	"reflect"
@@ -85,10 +84,6 @@ title,35,100,100,0,0,0,255`),
 }
 
 func TestCSVCardDecoder(t *testing.T) {
-	type args struct {
-		csv    []byte
-		styles Styles
-	}
 	titleStyle := &Style{
 		name:     "title",
 		fontsize: 30,
@@ -112,10 +107,15 @@ func TestCSVCardDecoder(t *testing.T) {
 		"description": descStyle,
 		"cost":        costStyle,
 	}
+
+	type args struct {
+		csv    []byte
+		styles Styles
+	}
 	tests := []struct {
 		name    string
 		args    args
-		want    *Cards
+		want    Cards
 		wantErr bool
 	}{
 		{
@@ -125,11 +125,11 @@ func TestCSVCardDecoder(t *testing.T) {
 main,title,some title
 main,description,test
 sub1,title,sub1 title
-sub1,description
+sub1,description, desc
 main,cost,12`),
 				styles: useStyles,
 			},
-			want: &Cards{
+			want: Cards{
 				"main": &Card{
 					styledTexts: []StyledText{
 						{
@@ -155,7 +155,7 @@ main,cost,12`),
 							text:  "sub1 title",
 							style: titleStyle,
 						}, {
-							text:  "",
+							text:  " desc",
 							style: descStyle,
 						},
 					},
@@ -200,8 +200,6 @@ main,title,some title`),
 				t.Errorf("CSVDecoder.DecodeCards() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			fmt.Println(got)
-			fmt.Println(tt.want)
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("CSVDecoder.DecodeCards() = %v, want %v", got, tt.want)
 			}
