@@ -36,12 +36,44 @@ type (
 	}
 )
 
-// Pointer returns pointer to style by style name
-func (s Styles) Pointer(name string) (*Style, error) {
+// StylePointer returns pointer to style by style name
+func (s Styles) StylePointer(name string) (*Style, error) {
 	if _, e := s[name]; !e {
 		return nil, errors.New("style is undefined")
 	}
 	return s[name], nil
+}
+
+// AddStyleText adds styled text to the card of cards
+// name is card name, text is description or some value, style is style for text pointer
+func (c *Cards) AddStyleText(card string, text string, style *Style) error {
+	if style == nil {
+		return errors.New("style is undefined")
+	}
+	if _, ok := (*c)[card]; !ok {
+		(*c)[card] = &Card{}
+	}
+	return (*c)[card].AddStyleText(text, style)
+}
+
+// AddStyleText adds styled text to single card
+// text is description or some value, style is style for text pointer
+func (c *Card) AddStyleText(text string, style *Style) error {
+	if _, ok := (*c).styles[style.name]; ok {
+		return errors.New("style is duplicated")
+	}
+	if (*c).styles == nil {
+		(*c).styles = make(map[string]struct{})
+	}
+	(*c).styles[style.name] = struct{}{}
+	if (*c).styledTexts == nil {
+		(*c).styledTexts = make([]StyledText, 0)
+	}
+	(*c).styledTexts = append((*c).styledTexts, StyledText{
+		text:  text,
+		style: style,
+	})
+	return nil
 }
 
 // String is stringer for Styles
@@ -60,38 +92,6 @@ func (s Style) String() string {
 	ss += fmt.Sprintf(", fontsize: %.1f", s.fontsize)
 	ss += fmt.Sprintf(", rgba: ( %d, %d, %d, %d )", s.rgba.R, s.rgba.G, s.rgba.B, s.rgba.A)
 	return ss
-}
-
-// Add adds styled text to the card of cards
-// name is card name, text is description or some value, style is style for text pointer
-func (c *Cards) Add(name string, text string, style *Style) error {
-	if style == nil {
-		return errors.New("style is undefined")
-	}
-	if _, ok := (*c)[name]; !ok {
-		(*c)[name] = &Card{}
-	}
-	return (*c)[name].Add(text, style)
-}
-
-// Add adds styled text to single card
-// text is description or some value, style is style for text pointer
-func (c *Card) Add(text string, style *Style) error {
-	if _, ok := (*c).styles[style.name]; ok {
-		return errors.New("style is duplicated")
-	}
-	if (*c).styles == nil {
-		(*c).styles = make(map[string]struct{})
-	}
-	(*c).styles[style.name] = struct{}{}
-	if (*c).styledTexts == nil {
-		(*c).styledTexts = make([]StyledText, 0)
-	}
-	(*c).styledTexts = append((*c).styledTexts, StyledText{
-		text:  text,
-		style: style,
-	})
-	return nil
 }
 
 // String is stringer for Cards
