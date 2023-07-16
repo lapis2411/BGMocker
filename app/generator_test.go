@@ -60,13 +60,13 @@ var style1 = &Style{
 	name:     "style",
 	fontsize: 60,
 	position: image.Point{X: 100, Y: 100},
-	rgba:     color.RGBA{0, 0, 0, 255},
+	rgba:     color.RGBA{255, 0, 0, 255},
 }
 var style2 = &Style{
 	name:     "style2",
 	fontsize: 30,
 	position: image.Point{X: 450, Y: 700},
-	rgba:     color.RGBA{100, 150, 200, 255},
+	rgba:     color.RGBA{0, 150, 200, 255},
 }
 
 func TestGenerate(t *testing.T) {

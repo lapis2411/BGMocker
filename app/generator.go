@@ -22,7 +22,6 @@ const (
 )
 
 var border = color.RGBA{R: 0x55, G: 0x3a, B: 0xed, A: 0xff}
-var black = color.RGBA{R: 0x00, G: 0x00, B: 0x00, A: 0xff}
 var white = color.RGBA{R: 0xff, G: 0xff, B: 0xff, A: 0xff}
 
 type (
@@ -60,7 +59,7 @@ func generateCard(c Card, name string, width, height int) error {
 		}
 		d := &font.Drawer{
 			Dst:  img,
-			Src:  image.NewUniform(color.Black),
+			Src:  image.NewUniform(s.style.rgba),
 			Face: ff,
 			Dot:  points,
 		}
