@@ -71,11 +71,11 @@ func (c CsvDecoder) DecodeCards(data []byte, styles Styles) (Cards, error) {
 		Text  string `csv:"text"`
 	}
 	if err := gocsv.UnmarshalBytesToCallback(data, func(cc cardCSV) error {
-		sp, err := styles.Pointer(cc.Style)
+		sp, err := styles.StylePointer(cc.Style)
 		if err != nil {
 			return errors.New("style is undefined")
 		}
-		return cards.Add(cc.Name, cc.Text, sp)
+		return cards.AddStyleText(cc.Name, cc.Text, sp)
 	}); err != nil {
 		return nil, err
 	}
