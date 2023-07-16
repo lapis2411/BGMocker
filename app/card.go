@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+
+	"golang.org/x/image/math/fixed"
 )
 
 type (
@@ -42,6 +44,13 @@ func (s Styles) StylePointer(name string) (*Style, error) {
 		return nil, errors.New("style is undefined")
 	}
 	return s[name], nil
+}
+
+func (s *StyledText) Point26_6() fixed.Point26_6 {
+	return fixed.Point26_6{
+		X: fixed.Int26_6(s.style.position.X * 64),
+		Y: fixed.Int26_6(s.style.position.Y * 64),
+	}
 }
 
 // AddStyleText adds styled text to the card of cards
