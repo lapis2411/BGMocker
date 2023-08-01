@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"image"
 	"image/png"
-	"io/ioutil"
-	"net/http"
+	"os"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -18,55 +17,55 @@ type (
 		Generate(c echo.Context) error
 	}
 
-	CSVReceiveHandler struct{}
-	ImageResponse     struct {
+	ImageResponse struct {
 		ImageData string `json:"imageData"`
+	}
+	ImageBase64 struct {
+		image string
 	}
 )
 
-var CSVReceiver = CSVReceiveHandler{}
-
-func (CSVReceiveHandler) Generate(c echo.Context) error {
-	styleBytes, err := readReceiveFile(c, "StyleFile")
+// PrintsJsons make base64 png for response in json format by style and card csv
+func PrintsJsons(styleBytes, cardBytes []byte) ([]ImageResponse, error) {
+	b64s, err := base64Images(styleBytes, cardBytes)
 	if err != nil {
-		return fmt.Errorf("failed to receive style csv file: %w", err)
+		return nil, fmt.Errorf("failed to generate images: %w", err)
 	}
-
-	cardBytes, err := readReceiveFile(c, "CardFile")
-	if err != nil {
-		return fmt.Errorf("failed to receive card csv file: %w", err)
+	jsons := make([]ImageResponse, len(b64s))
+	for i, b64 := range b64s {
+		jsons[i] = b64.ToPNGImageResponse()
 	}
-	if err != nil {
-		return fmt.Errorf("failed to receive csv data: %w", err)
-	}
-	cards, err := generator.MakeCards(styleBytes, cardBytes)
-	imgs := cards.PrintImages() // []*image.RGBAを返却することを想定
-	jsons := []ImageResponse{}
-	for _, img := range imgs {
-		b, err := encodeImageBase64(img)
-		if err != nil {
-			return fmt.Errorf("failed to encode image to base64: %w", err)
-		}
-		jsons = append(jsons, ImageResponse{ImageData: fmt.Sprintf("data:image/png;base64,%s", b)})
-	}
-	return c.JSON(http.StatusOK, jsons)
+	return jsons, nil
 }
 
-func readReceiveFile(c echo.Context, name string) ([]byte, error) {
-	file, err := c.FormFile(name)
+func (i ImageBase64) ToPNGImageResponse() ImageResponse {
+	s := fmt.Sprintf("data:image/png;base64,%s", i.image)
+	return ImageResponse{ImageData: s}
+}
+
+func base64Images(styles, cards []byte) ([]ImageBase64, error) {
+	cts, err := generator.MakeCards(styles, cards)
+	fp := os.Getenv("FontPath")
+	gen := generator.NormalSizeCardGenerator(fp)
+	cds, err := gen.Generate(cts)
 	if err != nil {
-		return nil, fmt.Errorf("failed to receive file: %w", err)
+		return nil, fmt.Errorf("failed to generate cards: %w", err)
 	}
-	src, err := file.Open()
+	l := generator.NewA4Layout()
+	cvs, err := l.Arrange(cds)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open file: %w", err)
+		return nil, fmt.Errorf("failed to arrange cards: %w", err)
 	}
-	defer src.Close()
-	bs, err := ioutil.ReadAll(src)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read style csv file: %w", err)
+	imgs := cvs.ToImageRGBA()
+	base64s := make([]ImageBase64, len(imgs))
+	for i, img := range imgs {
+		b64i, err := encodeImageBase64(img)
+		if err != nil {
+			return nil, fmt.Errorf("failed to encode image to base64: %w", err)
+		}
+		base64s[i].image = b64i
 	}
-	return bs, nil
+	return base64s, nil
 }
 
 func encodeImageBase64(img *image.RGBA) (string, error) {

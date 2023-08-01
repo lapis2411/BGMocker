@@ -1,10 +1,13 @@
 package app
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/lapis2411/board-game-maker/app/image"
+	"github.com/lapis2411/board-game-maker/app/receive"
 )
 
 func main() {
@@ -17,9 +20,7 @@ func main() {
 	e.GET("/top", func(c echo.Context) error {
 		return c.Render(http.StatusOK, "top.html", nil)
 	})
-	e.POST("/render", func(c echo.Context) error {
-		return c.Redirect(http.StatusMovedPermanently, "/top")
-	})
+	e.POST("/generate", generate)
 	e.GET("/*", func(c echo.Context) error {
 		return c.Redirect(http.StatusMovedPermanently, "/top")
 	})
@@ -33,17 +34,16 @@ func getUser(c echo.Context) error {
 	return c.String(http.StatusOK, id)
 }
 
-func getConvertFile(c echo.Context) error {
-	file, err := c.FormFile("mockFile")
+func generate(c echo.Context) error {
+	style, err := receive.ReceiveFile(c, "styleCSV")
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to receive styleCSV: %w", err)
 	}
-
-	src, err := file.Open()
+	card, err := receive.ReceiveFile(c, "cardCSV")
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to receive cardCSV: %w", err)
 	}
-	defer src.Close()
-
-	return c.Redirect(http.StatusMovedPermanently, "/someurl")
+	res, err := image.PrintsJsons(style, card)
+	// base64形式の画像のリストをレスポンスとして返す
+	return c.JSON(http.StatusOK, res)
 }
