@@ -15,18 +15,63 @@
     .btn-upload {
       margin-top: 10px;
     }
+    .card {
+      margin-bottom: 20px;
+    }
+    .output-img {
+      width: 50vw; /* Viewport width (vw) を使用して、ビューポートの 50% の幅に設定 */
+      max-width: 100%; /* 画像がその自然な大きさより大きくならないようにする */
+      border: 2px solid black; /* 画像の周りに2pxの黒い枠を追加 */
+    }
+    .btn-primary {
+      margin-bottom: 20px; /* ボタンの下側に20pxのマージンを追加 */
+    }
   </style>
 </head>
 <body>
   <div class="file-upload-wrapper">
     <h1>CSVファイルアップロード</h1>
-    <form action="/convert" method="post" enctype="multipart/form-data">
-      <div class="form-group">
-        <input type="file" class="form-control-file" id="StyleFile" name="StyleFile" accept=".csv">
-        <input type="file" class="form-control-file" id="CardFile" name="CardFile" accept=".csv">
+    <div class="card">
+      <div class="card-header">
+        <h2>Style情報</h2>
       </div>
-      <button type="submit" class="btn btn-primary btn-upload">アップロード</button>
-    </form>
+      <div class="card-body">
+        <input type="file" class="form-control-file" id="StyleFile" name="styleCSV" accept=".csv">
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h2>Card情報</h2>
+      </div>
+      <div class="card-body">
+        <input type="file" class="form-control-file" id="CardFile" name="cardCSV" accept=".csv">
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="upload()">Upload</button>
+    <div id="output"></div>
   </div>
 </body>
 </html>
+
+<script>
+  async function upload() {
+    const styleFile = document.getElementById('StyleFile').files[0];
+    const cardFile = document.getElementById('CardFile').files[0];
+    const formData = new FormData();
+    formData.append('styleCSV', styleFile);
+    formData.append('cardCSV', cardFile);
+    const res = await fetch('/generate', {
+      method: 'POST',
+      body: formData
+    });
+    const images = await res.json();
+    const output = document.getElementById('output');
+    output.innerHTML = '';
+    for (const image of images) {
+      const img = document.createElement('img');
+      img.src = `${image.imageData}`;
+      img.classList.add('output-img'); /* 新たに追加したクラスを適用 */
+      output.appendChild(img);
+    }
+  }
+</script>

@@ -1,14 +1,19 @@
-package app
+package main
 
 import (
 	"fmt"
 	"html/template"
+	"io"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/lapis2411/board-game-maker/app/image"
-	"github.com/lapis2411/board-game-maker/app/receive"
+	"github.com/lapis2411/BGMocker/app/image"
+	"github.com/lapis2411/BGMocker/app/receive"
 )
+
+type Template struct {
+	templates *template.Template
+}
 
 func main() {
 	e := echo.New()
@@ -21,6 +26,9 @@ func main() {
 		return c.Render(http.StatusOK, "top.html", nil)
 	})
 	e.POST("/generate", generate)
+	e.GET("/upload", func(c echo.Context) error {
+		return c.Render(http.StatusOK, "upload.html", nil)
+	})
 	e.GET("/*", func(c echo.Context) error {
 		return c.Redirect(http.StatusMovedPermanently, "/top")
 	})
@@ -46,4 +54,8 @@ func generate(c echo.Context) error {
 	res, err := image.PrintsJsons(style, card)
 	// base64形式の画像のリストをレスポンスとして返す
 	return c.JSON(http.StatusOK, res)
+}
+
+func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+	return t.templates.ExecuteTemplate(w, name, data)
 }
