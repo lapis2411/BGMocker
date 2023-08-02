@@ -1,4 +1,4 @@
-module github.com/lapis2411/board-game-maker
+module github.com/lapis2411/BGMocker
 
 go 1.20
 
